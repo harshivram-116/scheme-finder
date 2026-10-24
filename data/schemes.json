@@ -1,0 +1,57 @@
+[
+  {
+    "id": "old_age_pension",
+    "name": "Old Age Pension (IGNOAPS / state pension)",
+    "level": "central+state",
+    "benefit": "Monthly pension for senior citizens",
+    "rules": { "min_age": 60, "requires_bpl": true },
+    "documents": ["Aadhaar", "Ration card", "Age proof", "Bank passbook"],
+    "apply_at": "Taluk office / e-Sevai centre",
+    "source_url": "TODO: add official URL",
+    "verified": false
+  },
+  {
+    "id": "pm_kisan",
+    "name": "PM-KISAN",
+    "level": "central",
+    "benefit": "Yearly income support for farmer families",
+    "rules": { "requires_agri_land": true },
+    "documents": ["Aadhaar", "Land records", "Bank passbook"],
+    "apply_at": "pmkisan.gov.in / CSC centre / local agriculture office",
+    "source_url": "TODO: add official URL",
+    "verified": false
+  },
+  {
+    "id": "ujjwala",
+    "name": "Pradhan Mantri Ujjwala Yojana",
+    "level": "central",
+    "benefit": "Free LPG connection for eligible women",
+    "rules": { "min_age": 18, "genders": ["female"], "requires_bpl": true },
+    "documents": ["Aadhaar", "Ration card", "Bank passbook", "Passport photo"],
+    "apply_at": "Nearest LPG distributor",
+    "source_url": "TODO: add official URL",
+    "verified": false
+  },
+  {
+    "id": "magalir_urimai",
+    "name": "Kalaignar Magalir Urimai Thogai",
+    "level": "state (Tamil Nadu)",
+    "benefit": "Monthly assistance for women heads of family",
+    "rules": { "min_age": 21, "genders": ["female"], "max_income": 250000 },
+    "documents": ["Aadhaar", "Ration card", "Bank passbook"],
+    "apply_at": "Designated camps / e-Sevai / ration shop",
+    "source_url": "TODO: add official URL",
+    "verified": false
+  },
+  {
+    "id": "post_matric_scholarship",
+    "name": "Post-Matric Scholarship (example)",
+    "level": "central/state",
+    "benefit": "Fee and maintenance support for students",
+    "rules": { "requires_student": true, "max_income": 250000 },
+    "documents": ["Aadhaar", "Community certificate", "Income certificate", "Bonafide certificate"],
+    "apply_at": "National Scholarship Portal / college office",
+    "source_url": "TODO: add official URL",
+    "verified": false
+  }
+]

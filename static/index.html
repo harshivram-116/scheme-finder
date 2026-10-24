@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scheme Finder</title>
+<style>
+  :root {
+    --bg: #eef1f7; --panel: #ffffff; --text: #1c2333; --muted: #5d6779;
+    --primary: #2b59ff; --primary-dark: #1d44d6;
+    --bot: #ffffff; --user: #2b59ff; --border: #e1e5ee;
+    --ok: #12805c; --warn: #9a6700; --warn-bg: #fff4d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1220; --panel: #151c2c; --text: #e8ecf5; --muted: #98a2b8;
+      --primary: #5b82ff; --primary-dark: #7b9aff;
+      --bot: #1c2438; --user: #3d63e8; --border: #2a3248;
+      --ok: #4fd1a1; --warn: #f0c24b; --warn-bg: #3a2f10;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, "Noto Sans Tamil", sans-serif;
+         background: var(--bg); color: var(--text); line-height: 1.5; display: flex; justify-content: center; }
+  .app { width: 100%; max-width: 760px; height: 100dvh; display: flex; flex-direction: column; background: var(--panel);
+         border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+
+  header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--primary); color: #fff;
+            display: grid; place-items: center; font-weight: 700; flex: none; }
+  .title { flex: 1; min-width: 0; }
+  .title b { display: block; font-size: 1rem; }
+  .title span { font-size: .8rem; color: var(--muted); }
+  .tools { display: flex; gap: 8px; align-items: center; }
+  .lang button, .restart { border: 1px solid var(--border); background: var(--panel); color: var(--text);
+                           padding: 6px 10px; cursor: pointer; font-size: .85rem; }
+  .lang button:first-child { border-radius: 8px 0 0 8px; }
+  .lang button:last-child { border-radius: 0 8px 8px 0; border-left: none; }
+  .lang button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .restart { border-radius: 8px; }
+
+  #log { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: var(--bg); }
+  .msg { max-width: 86%; padding: 10px 14px; border-radius: 16px; word-wrap: break-word; animation: pop .18s ease-out; }
+  .msg.bot { align-self: flex-start; background: var(--bot); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+  .msg.user { align-self: flex-end; background: var(--user); color: #fff; border-bottom-right-radius: 4px; }
+  .msg.wide { max-width: 100%; width: 100%; background: transparent; border: none; padding: 0; }
+  @keyframes pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .typing span { display: inline-block; width: 7px; height: 7px; margin: 0 2px; border-radius: 50%;
+                 background: var(--muted); animation: blink 1s infinite; }
+  .typing span:nth-child(2) { animation-delay: .15s; }
+  .typing span:nth-child(3) { animation-delay: .3s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+
+  .scheme { background: var(--bot); border: 1px solid var(--border); border-left: 5px solid var(--ok);
+            border-radius: 12px; padding: 14px 16px; margin-top: 8px; }
+  .scheme h3 { margin: 0 0 2px; font-size: 1rem; }
+  .benefit { color: var(--muted); margin: 0 0 8px; font-size: .92rem; }
+  .scheme h4 { margin: 8px 0 3px; font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .scheme ul { margin: 0; padding-left: 20px; }
+  .badge { display: inline-block; font-size: .7rem; padding: 1px 8px; border-radius: 99px;
+           background: var(--warn-bg); color: var(--warn); margin-left: 6px; vertical-align: middle; }
+  details { background: var(--bot); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; margin-top: 8px; }
+  details summary { cursor: pointer; font-weight: 600; }
+  .no { margin: 8px 0 0; padding: 0; list-style: none; }
+  .no li { padding: 7px 0; border-top: 1px solid var(--border); }
+  .no span { display: block; color: var(--muted); font-size: .88rem; }
+
+  footer { border-top: 1px solid var(--border); background: var(--panel); padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px)); }
+  #chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+  #chips:empty { display: none; }
+  .chip { border: 1px solid var(--primary); color: var(--primary); background: transparent; padding: 8px 16px;
+          border-radius: 99px; font-size: .95rem; cursor: pointer; }
+  .chip:hover { background: var(--primary); color: #fff; }
+  .row { display: flex; gap: 8px; }
+  #input { flex: 1; padding: 11px 14px; font-size: 1rem; border-radius: 99px; border: 1px solid var(--border);
+           background: var(--bg); color: var(--text); }
+  #input:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+  #input:disabled { opacity: .55; }
+  #send { width: 46px; height: 46px; border: none; border-radius: 50%; background: var(--primary); color: #fff;
+          font-size: 1.2rem; cursor: pointer; flex: none; }
+  #send:disabled { opacity: .5; cursor: default; }
+  .note { text-align: center; font-size: .72rem; color: var(--muted); margin: 8px 0 0; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="avatar">S</div>
+    <div class="title"><b id="t_title"></b><span id="t_status"></span></div>
+    <div class="tools">
+      <div class="lang"><button id="en" type="button">English</button><button id="ta" type="button">தமிழ்</button></div>
+      <button class="restart" id="restart" type="button"></button>
+    </div>
+  </header>
+
+  <div id="log" aria-live="polite"></div>
+
+  <footer>
+    <div id="chips"></div>
+    <div class="row">
+      <input id="input" type="text" autocomplete="off">
+      <button id="send" type="button" aria-label="Send">&#10148;</button>
+    </div>
+    <p class="note" id="t_note"></p>
+  </footer>
+</div>
+
+<script>
+const STEPS = ["age", "gender", "income", "bpl", "land", "student", "district"];
+
+const T = {
+  en: {
+    title: "Scheme Finder", status: "Government scheme assistant", restart: "Restart",
+    greet: "Hi! I’ll ask a few quick questions and find government schemes you may be eligible for.",
+    q: {
+      age: "How old are you?",
+      gender: "What is your gender?",
+      income: "What is your family’s approximate yearly income in rupees? (for example 120000)",
+      bpl: "Does your household have a BPL (Below Poverty Line) card?",
+      land: "Do you own agricultural land?",
+      student: "Are you currently a student?",
+      district: "Which district do you live in? (optional)"
+    },
+    male: "Male", female: "Female", other: "Other", yes: "Yes", no: "No", skip: "Skip",
+    searching: "Checking schemes for you…",
+    found: n => `Good news! I found ${n} scheme${n === 1 ? "" : "s"} you may be eligible for:`,
+    none: "I couldn’t find any matching schemes right now.",
+    notElig: "Schemes you don’t qualify for",
+    docs: "Documents needed", where: "Where to apply", unverified: "Unverified",
+    badAge: "Please enter a valid age between 0 and 120.",
+    badIncome: "Please enter the income as a number, for example 120000.",
+    type: "Type your answer…", pick: "Choose an option above", done: "All done. Tap Restart to try again.",
+    err: "I couldn’t reach the server. Please check that it is running.",
+    note: "Guidance only. Please confirm details at your local office before applying."
+  },
+  ta: {
+    title: "திட்ட கண்டுபிடிப்பான்", status: "அரசு திட்ட உதவியாளர்", restart: "மீண்டும் தொடங்கு",
+    greet: "வணக்கம்! சில கேள்விகள் கேட்டு, உங்களுக்குத் தகுதியான அரசு திட்டங்களைக் கண்டறிகிறேன்.",
+    q: {
+      age: "உங்கள் வயது என்ன?",
+      gender: "உங்கள் பாலினம் என்ன?",
+      income: "உங்கள் குடும்பத்தின் ஆண்டு வருமானம் எவ்வளவு? (ரூபாயில், எ.கா. 120000)",
+      bpl: "உங்கள் குடும்பத்திடம் BPL (வறுமைக் கோட்டுக்குக் கீழ்) அட்டை உள்ளதா?",
+      land: "உங்களுக்கு விவசாய நிலம் உள்ளதா?",
+      student: "நீங்கள் தற்போது மாணவரா?",
+      district: "நீங்கள் எந்த மாவட்டத்தில் வசிக்கிறீர்கள்? (விருப்பம்)"
+    },
+    male: "ஆண்", female: "பெண்", other: "மற்றவர்", yes: "ஆம்", no: "இல்லை", skip: "தவிர்",
+    searching: "திட்டங்களைத் தேடுகிறேன்…",
+    found: n => `உங்களுக்குத் தகுதியான ${n} திட்டங்கள் கிடைத்தன:`,
+    none: "பொருந்தும் திட்டங்கள் எதுவும் கிடைக்கவில்லை.",
+    notElig: "தகுதி இல்லாத திட்டங்கள்",
+    docs: "தேவையான ஆவணங்கள்", where: "எங்கே விண்ணப்பிக்க வேண்டும்", unverified: "சரிபார்க்கப்படவில்லை",
+    badAge: "தயவுசெய்து 0 முதல் 120 வரை சரியான வயதை உள்ளிடவும்.",
+    badIncome: "தயவுசெய்து வருமானத்தை எண்ணாக உள்ளிடவும் (எ.கா. 120000).",
+    type: "இங்கே தட்டச்சு செய்யவும்…", pick: "மேலே உள்ள விருப்பத்தைத் தேர்ந்தெடுக்கவும்",
+    done: "முடிந்தது. மீண்டும் முயல “மீண்டும் தொடங்கு” என்பதைத் தட்டவும்.",
+    err: "சர்வருடன் இணைக்க முடியவில்லை.",
+    note: "இது வழிகாட்டுதல் மட்டுமே. விண்ணப்பிக்கும் முன் உள்ளூர் அலுவலகத்தில் உறுதி செய்யவும்."
+  }
+};
+
+let lang = "en", step = 0, answers = {}, busy = false, session = 0;
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const scrollDown = () => { const l = $("log"); l.scrollTop = l.scrollHeight; };
+
+function addMsg(html, cls) {
+  const d = document.createElement("div");
+  d.className = "msg " + cls;
+  d.innerHTML = html;
+  $("log").appendChild(d);
+  scrollDown();
+  return d;
+}
+const addUser = text => addMsg(esc(text), "user");
+
+async function bot(html, delay = 550) {
+  const my = session;
+  const t = addMsg('<span class="typing"><span></span><span></span><span></span></span>', "bot");
+  await sleep(delay);
+  if (my !== session) return null;
+  t.innerHTML = html;
+  scrollDown();
+  return t;
+}
+
+function setChips(list) {
+  const box = $("chips");
+  box.innerHTML = "";
+  list.forEach(([label, value]) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chip"; b.textContent = label;
+    b.onclick = () => answer(value, label);
+    box.appendChild(b);
+  });
+}
+
+function configureInput(stepKey) {
+  const t = T[lang], inp = $("input");
+  const typed = ["age", "income", "district"].includes(stepKey);
+  inp.disabled = !typed; $("send").disabled = !typed;
+  inp.placeholder = typed ? t.type : t.pick;
+  inp.inputMode = stepKey === "district" ? "text" : "numeric";
+  inp.value = "";
+  if (typed) inp.focus();
+  const t2 = T[lang];
+  if (stepKey === "gender") setChips([[t2.male, "male"], [t2.female, "female"], [t2.other, "other"]]);
+  else if (["bpl", "land", "student"].includes(stepKey)) setChips([[t2.yes, true], [t2.no, false]]);
+  else if (stepKey === "district") setChips([[t2.skip, null]]);
+  else setChips([]);
+}
+
+async function ask() {
+  const my = session, key = STEPS[step];
+  $("chips").innerHTML = ""; $("input").disabled = true; $("send").disabled = true;
+  const m = await bot(esc(T[lang].q[key]));
+  if (!m || my !== session) return;
+  busy = false;
+  configureInput(key);
+}
+
+async function answer(raw, label) {
+  if (busy) return;
+  const key = STEPS[step], t = T[lang];
+  let value = raw, shown = label ?? String(raw);
+
+  if (key === "age") {
+    const n = Number(String(raw).trim());
+    if (!Number.isInteger(n) || n < 0 || n > 120) { addUser(shown); busy = true; await bot(esc(t.badAge), 350); busy = false; configureInput(key); return; }
+    value = n;
+  } else if (key === "income") {
+    const n = Number(String(raw).replace(/[,₹\s]/g, ""));
+    if (!Number.isFinite(n) || n < 0 || String(raw).trim() === "") { addUser(shown); busy = true; await bot(esc(t.badIncome), 350); busy = false; configureInput(key); return; }
+    value = Math.round(n);
+  } else if (key === "district") {
+    value = typeof raw === "string" && raw.trim() ? raw.trim() : null;
+    if (!value && label === undefined) return;
+  }
+
+  busy = true;
+  addUser(shown);
+  answers[key] = value;
+  $("chips").innerHTML = ""; $("input").value = "";
+  step++;
+  if (step < STEPS.length) ask(); else finish();
+}
+
+function schemeCard(s) {
+  const t = T[lang];
+  const badge = s.verified === false ? `<span class="badge">${t.unverified}</span>` : "";
+  return `<div class="scheme"><h3>${esc(s.name)}${badge}</h3>
+    <p class="benefit">${esc(s.benefit)}</p>
+    <h4>${t.docs}</h4><ul>${(s.documents || []).map(d => `<li>${esc(d)}</li>`).join("")}</ul>
+    <h4>${t.where}</h4><div>${esc(s.apply_at)}</div></div>`;
+}
+
+async function finish() {
+  const my = session, t = T[lang];
+  $("input").disabled = true; $("send").disabled = true; $("input").placeholder = t.done;
+  await bot(esc(t.searching), 500);
+  if (my !== session) return;
+  const body = {
+    age: answers.age, gender: answers.gender, annual_income: answers.income,
+    is_bpl: !!answers.bpl, owns_agri_land: !!answers.land, is_student: !!answers.student,
+    district: answers.district || null
+  };
+  try {
+    const r = await fetch("/eligibility", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error("bad response");
+    const data = await r.json();
+    if (my !== session) return;
+    if (data.eligible.length) {
+      addMsg(esc(t.found(data.eligible.length)) + data.eligible.map(schemeCard).join(""), "bot wide");
+    } else {
+      addMsg(esc(t.none), "bot");
+    }
+    if (data.not_eligible.length) {
+      addMsg(`<details><summary>${esc(t.notElig)} (${data.not_eligible.length})</summary><ul class="no">` +
+        data.not_eligible.map(n => `<li>${esc(n.scheme)}<span>${n.reasons.map(esc).join(" · ")}</span></li>`).join("") +
+        `</ul></details>`, "bot wide");
+    }
+  } catch (e) {
+    addMsg(esc(t.err), "bot");
+  }
+  busy = false;
+  setChips([[t.restart, "__restart"]]);
+  $("chips").firstChild.onclick = start;
+}
+
+function labels() {
+  const t = T[lang];
+  $("t_title").textContent = t.title; $("t_status").textContent = t.status;
+  $("restart").textContent = t.restart; $("t_note").textContent = t.note;
+  document.documentElement.lang = lang;
+  $("en").classList.toggle("active", lang === "en");
+  $("ta").classList.toggle("active", lang === "ta");
+}
+
+async function start() {
+  session++; step = 0; answers = {}; busy = true;
+  $("log").innerHTML = ""; $("chips").innerHTML = "";
+  labels();
+  await bot(esc(T[lang].greet), 400);
+  ask();
+}
+
+$("send").onclick = () => answer($("input").value);
+$("input").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); if (!$("send").disabled) answer($("input").value); } });
+$("restart").onclick = start;
+$("en").onclick = () => { lang = "en"; start(); };
+$("ta").onclick = () => { lang = "ta"; start(); };
+start();
+</script>
+</body>
+</html>
