@@ -20,6 +20,8 @@ class ProfileIn(BaseModel):
     owns_agri_land: bool = False
     is_student: bool = False
     district: Optional[str] = None
+    family_excluded_category: bool = False
+    land_after_cutoff: bool = False
 
 
 @app.get("/", include_in_schema=False)

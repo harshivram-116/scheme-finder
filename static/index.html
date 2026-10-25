@@ -6,20 +6,26 @@
 <title>Scheme Finder</title>
 <style>
   :root {
-    --bg: #eef1f7; --panel: #ffffff; --text: #1c2333; --muted: #5d6779;
+    --bg: #eef1f7; --panel: #ffffff; --text: #1c2333; --muted: #465064; --accent: #1d44d6; --benefit-bg: #e3f5ec; --info-bg: #eaf0ff; --reason: #b3261e;
     --primary: #2b59ff; --primary-dark: #1d44d6;
     --bot: #ffffff; --user: #2b59ff; --border: #e1e5ee;
     --ok: #12805c; --warn: #9a6700; --warn-bg: #fff4d6;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #0d1220; --panel: #151c2c; --text: #e8ecf5; --muted: #98a2b8;
+      --bg: #0d1220; --panel: #151c2c; --text: #e8ecf5; --muted: #b9c2d6; --accent: #9db4ff; --benefit-bg: #0f3a2e; --info-bg: #1d2a52; --reason: #ffb3ab;
       --primary: #5b82ff; --primary-dark: #7b9aff;
       --bot: #1c2438; --user: #3d63e8; --border: #2a3248;
       --ok: #4fd1a1; --warn: #f0c24b; --warn-bg: #3a2f10;
     }
   }
   * { box-sizing: border-box; }
+  html { font-size: 17px; }
+  @media (max-width: 600px) {
+    html { font-size: 19px; }
+    .msg { max-width: 92%; }
+    .chip { padding: 10px 18px; }
+  }
   html, body { height: 100%; margin: 0; }
   body { font-family: -apple-system, "Segoe UI", Roboto, "Noto Sans Tamil", sans-serif;
          background: var(--bg); color: var(--text); line-height: 1.5; display: flex; justify-content: center; }
@@ -55,17 +61,30 @@
 
   .scheme { background: var(--bot); border: 1px solid var(--border); border-left: 5px solid var(--ok);
             border-radius: 12px; padding: 14px 16px; margin-top: 8px; }
-  .scheme h3 { margin: 0 0 2px; font-size: 1rem; }
-  .benefit { color: var(--muted); margin: 0 0 8px; font-size: .92rem; }
-  .scheme h4 { margin: 8px 0 3px; font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
-  .scheme ul { margin: 0; padding-left: 20px; }
+  .scheme h3 { margin: 0 0 8px; font-size: 1.1rem; line-height: 1.35; }
+  .benefit { background: var(--benefit-bg); color: var(--text); margin: 0 0 12px; padding: 10px 12px;
+             border-radius: 8px; font-size: 1rem; font-weight: 500; }
+  .scheme h4 { margin: 14px 0 6px; font-size: 1rem; font-weight: 700; color: var(--accent);
+               text-transform: none; letter-spacing: normal; }
+  .h-docs::before { content: "\1F4C4  "; }
+  .h-where::before { content: "\1F4CD  "; }
+  .scheme ul { margin: 0; padding: 0; list-style: none; }
+  .scheme li { position: relative; padding: 3px 0 3px 26px; color: var(--text); }
+  .scheme li::before { content: "\2713"; position: absolute; left: 4px; color: var(--ok); font-weight: 700; }
+  .where { background: var(--info-bg); color: var(--text); padding: 10px 12px; border-radius: 8px; }
   .badge { display: inline-block; font-size: .7rem; padding: 1px 8px; border-radius: 99px;
            background: var(--warn-bg); color: var(--warn); margin-left: 6px; vertical-align: middle; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .act { display: inline-block; border: 1px solid var(--border); background: var(--panel); color: var(--text);
+         padding: 9px 16px; border-radius: 99px; font-size: .92rem; cursor: pointer; text-decoration: none; font-family: inherit; }
+  .act:hover { border-color: var(--primary); }
+  .act.wa { background: #25d366; border-color: #25d366; color: #0b2e18; font-weight: 600; }
   details { background: var(--bot); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; margin-top: 8px; }
   details summary { cursor: pointer; font-weight: 600; }
   .no { margin: 8px 0 0; padding: 0; list-style: none; }
-  .no li { padding: 7px 0; border-top: 1px solid var(--border); }
-  .no span { display: block; color: var(--muted); font-size: .88rem; }
+  .no li { padding: 9px 0; border-top: 1px solid var(--border); font-weight: 600; }
+  .no span { display: block; color: var(--reason); font-size: .92rem; font-weight: 400; margin-top: 2px; }
+  .no span::before { content: "\2717  "; }
 
   footer { border-top: 1px solid var(--border); background: var(--panel); padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px)); }
   #chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
@@ -108,7 +127,9 @@
 </div>
 
 <script>
-const STEPS = ["age", "gender", "income", "bpl", "land", "student", "district"];
+const STEPS = ["age", "gender", "income", "bpl", "land", "land_after_cutoff", "family_excluded_category", "student", "district"];
+// follow-up questions are only asked when the person owns land
+const shouldSkip = k => (k === "land_after_cutoff" || k === "family_excluded_category") && !answers.land;
 
 const T = {
   en: {
@@ -119,7 +140,9 @@ const T = {
       gender: "What is your gender?",
       income: "What is your family’s approximate yearly income in rupees? (for example 120000)",
       bpl: "Does your household have a BPL (Below Poverty Line) card?",
-      land: "Do you own agricultural land?",
+      land: "Do you own cultivable land in your own name? (Tenant farmers, or people farming a parent’s land that is not in their name, don’t count.)",
+      land_after_cutoff: "Did you buy or receive this land after 1 February 2019? (Land inherited after a family member’s death does not count as a “yes”.)",
+      family_excluded_category: "Does anyone in your family (you, your spouse or minor children) pay income tax, hold or have held elected or constitutional office, have or had a government job above peon/Group D level, get a pension of ₹10,000 or more a month, or work as a registered doctor, engineer, lawyer, CA or architect?",
       student: "Are you currently a student?",
       district: "Which district do you live in? (optional)"
     },
@@ -128,7 +151,7 @@ const T = {
     found: n => `Good news! I found ${n} scheme${n === 1 ? "" : "s"} you may be eligible for:`,
     none: "I couldn’t find any matching schemes right now.",
     notElig: "Schemes you don’t qualify for",
-    docs: "Documents needed", where: "Where to apply", unverified: "Unverified",
+    docs: "Documents needed", where: "Where to apply", unverified: "Unverified", copy: "Copy", copied: "Copied ✓", wa: "Share on WhatsApp", via: "Sent from Scheme Finder",
     badAge: "Please enter a valid age between 0 and 120.",
     badIncome: "Please enter the income as a number, for example 120000.",
     type: "Type your answer…", pick: "Choose an option above", done: "All done. Tap Restart to try again.",
@@ -143,7 +166,9 @@ const T = {
       gender: "உங்கள் பாலினம் என்ன?",
       income: "உங்கள் குடும்பத்தின் ஆண்டு வருமானம் எவ்வளவு? (ரூபாயில், எ.கா. 120000)",
       bpl: "உங்கள் குடும்பத்திடம் BPL (வறுமைக் கோட்டுக்குக் கீழ்) அட்டை உள்ளதா?",
-      land: "உங்களுக்கு விவசாய நிலம் உள்ளதா?",
+      land: "உங்கள் சொந்தப் பெயரில் விவசாய நிலம் உள்ளதா? (குத்தகை விவசாயிகள், அல்லது தந்தையின் பெயரில் உள்ள நிலத்தில் பயிரிடுபவர்கள் இதில் சேர மாட்டார்கள்.)",
+      land_after_cutoff: "இந்த நிலத்தை 2019 பிப்ரவரி 1-க்குப் பிறகு வாங்கினீர்களா அல்லது பெற்றீர்களா? (குடும்ப உறுப்பினரின் இறப்புக்குப் பிறகு வாரிசாகப் பெற்ற நிலம் “ஆம்” என்று கணக்கில் வராது.)",
+      family_excluded_category: "உங்கள் குடும்பத்தில் (நீங்கள், உங்கள் துணைவர், மைனர் குழந்தைகள்) யாராவது வருமான வரி செலுத்துகிறார்களா, தேர்ந்தெடுக்கப்பட்ட அல்லது அரசியலமைப்புப் பதவி வகிக்கிறார்களா/வகித்திருக்கிறார்களா, அரசு வேலை (அலுவலக உதவியாளர்/குரூப் D நிலைக்கு மேல்) செய்கிறார்களா, மாதம் ₹10,000 அல்லது அதற்கு மேல் ஓய்வூதியம் பெறுகிறார்களா, அல்லது பதிவு பெற்ற மருத்துவர், பொறியாளர், வழக்கறிஞர், CA, கட்டடக் கலைஞராகப் பணிபுரிகிறார்களா?",
       student: "நீங்கள் தற்போது மாணவரா?",
       district: "நீங்கள் எந்த மாவட்டத்தில் வசிக்கிறீர்கள்? (விருப்பம்)"
     },
@@ -152,7 +177,7 @@ const T = {
     found: n => `உங்களுக்குத் தகுதியான ${n} திட்டங்கள் கிடைத்தன:`,
     none: "பொருந்தும் திட்டங்கள் எதுவும் கிடைக்கவில்லை.",
     notElig: "தகுதி இல்லாத திட்டங்கள்",
-    docs: "தேவையான ஆவணங்கள்", where: "எங்கே விண்ணப்பிக்க வேண்டும்", unverified: "சரிபார்க்கப்படவில்லை",
+    docs: "தேவையான ஆவணங்கள்", where: "எங்கே விண்ணப்பிக்க வேண்டும்", unverified: "சரிபார்க்கப்படவில்லை", copy: "நகலெடு", copied: "நகலெடுக்கப்பட்டது ✓", wa: "WhatsApp-இல் பகிர்", via: "திட்ட கண்டுபிடிப்பான் மூலம் அனுப்பப்பட்டது",
     badAge: "தயவுசெய்து 0 முதல் 120 வரை சரியான வயதை உள்ளிடவும்.",
     badIncome: "தயவுசெய்து வருமானத்தை எண்ணாக உள்ளிடவும் (எ.கா. 120000).",
     type: "இங்கே தட்டச்சு செய்யவும்…", pick: "மேலே உள்ள விருப்பத்தைத் தேர்ந்தெடுக்கவும்",
@@ -209,7 +234,7 @@ function configureInput(stepKey) {
   if (typed) inp.focus();
   const t2 = T[lang];
   if (stepKey === "gender") setChips([[t2.male, "male"], [t2.female, "female"], [t2.other, "other"]]);
-  else if (["bpl", "land", "student"].includes(stepKey)) setChips([[t2.yes, true], [t2.no, false]]);
+  else if (["bpl", "land", "land_after_cutoff", "family_excluded_category", "student"].includes(stepKey)) setChips([[t2.yes, true], [t2.no, false]]);
   else if (stepKey === "district") setChips([[t2.skip, null]]);
   else setChips([]);
 }
@@ -246,17 +271,62 @@ async function answer(raw, label) {
   answers[key] = value;
   $("chips").innerHTML = ""; $("input").value = "";
   step++;
+  while (step < STEPS.length && shouldSkip(STEPS[step])) step++;
   if (step < STEPS.length) ask(); else finish();
 }
 
-function schemeCard(s) {
-  const t = T[lang];
-  const badge = s.verified === false ? `<span class="badge">${t.unverified}</span>` : "";
-  return `<div class="scheme"><h3>${esc(s.name)}${badge}</h3>
-    <p class="benefit">${esc(s.benefit)}</p>
-    <h4>${t.docs}</h4><ul>${(s.documents || []).map(d => `<li>${esc(d)}</li>`).join("")}</ul>
-    <h4>${t.where}</h4><div>${esc(s.apply_at)}</div></div>`;
+const shareTexts = {};
+
+function shareText(s) {
+  const t = T[lang], ta = lang === "ta";
+  const name = (ta && s.name_ta) || s.name;
+  const benefit = (ta && s.benefit_ta) || s.benefit;
+  const docs = (ta && s.documents_ta) || s.documents || [];
+  const where = (ta && s.apply_at_ta) || s.apply_at;
+  return [`*${name}*`, benefit, "", `${t.docs}:`, ...docs.map(d => `✓ ${d}`), "", `${t.where}:`, where, "", t.note, `— ${t.via}`].join("\n");
 }
+
+function schemeCard(s) {
+  const t = T[lang], ta = lang === "ta";
+  const name = (ta && s.name_ta) || s.name;
+  const benefit = (ta && s.benefit_ta) || s.benefit;
+  const docs = (ta && s.documents_ta) || s.documents || [];
+  const where = (ta && s.apply_at_ta) || s.apply_at;
+  const badge = s.verified === false ? `<span class="badge">${t.unverified}</span>` : "";
+  const text = shareText(s);
+  shareTexts[s.id] = text;
+  const wa = "https://wa.me/?text=" + encodeURIComponent(text);
+  return `<div class="scheme"><h3>${esc(name)}${badge}</h3>
+    <p class="benefit">${esc(benefit)}</p>
+    <h4 class="h-docs">${t.docs}</h4><ul>${docs.map(d => `<li>${esc(d)}</li>`).join("")}</ul>
+    <h4 class="h-where">${t.where}</h4><div class="where">${esc(where)}</div>
+    <div class="actions">
+      <button type="button" class="act copy" data-id="${esc(s.id)}">${t.copy}</button>
+      <a class="act wa" href="${wa}" target="_blank" rel="noopener">${t.wa}</a>
+    </div></div>`;
+}
+
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(text); return true; }
+  } catch (e) { /* fall through to the older method */ }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch (e) { return false; }
+}
+
+$("log").addEventListener("click", async e => {
+  const btn = e.target.closest && e.target.closest(".act.copy");
+  if (!btn) return;
+  const ok = await copyText(shareTexts[btn.dataset.id] || "");
+  btn.textContent = ok ? T[lang].copied : T[lang].copy;
+  setTimeout(() => { btn.textContent = T[lang].copy; }, 2000);
+});
 
 async function finish() {
   const my = session, t = T[lang];
@@ -266,6 +336,7 @@ async function finish() {
   const body = {
     age: answers.age, gender: answers.gender, annual_income: answers.income,
     is_bpl: !!answers.bpl, owns_agri_land: !!answers.land, is_student: !!answers.student,
+    land_after_cutoff: !!answers.land_after_cutoff, family_excluded_category: !!answers.family_excluded_category,
     district: answers.district || null
   };
   try {
@@ -280,7 +351,12 @@ async function finish() {
     }
     if (data.not_eligible.length) {
       addMsg(`<details><summary>${esc(t.notElig)} (${data.not_eligible.length})</summary><ul class="no">` +
-        data.not_eligible.map(n => `<li>${esc(n.scheme)}<span>${n.reasons.map(esc).join(" · ")}</span></li>`).join("") +
+        data.not_eligible.map(n => {
+          const isTa = lang === "ta";
+          const nm = (isTa && n.scheme_ta) || n.scheme;
+          const rs = (isTa && n.reasons_ta && n.reasons_ta.length) ? n.reasons_ta : n.reasons;
+          return `<li>${esc(nm)}<span>${rs.map(esc).join(" · ")}</span></li>`;
+        }).join("") +
         `</ul></details>`, "bot wide");
     }
   } catch (e) {

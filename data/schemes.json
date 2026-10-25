@@ -4,54 +4,153 @@
     "name": "Old Age Pension (IGNOAPS / state pension)",
     "level": "central+state",
     "benefit": "Monthly pension for senior citizens",
-    "rules": { "min_age": 60, "requires_bpl": true },
-    "documents": ["Aadhaar", "Ration card", "Age proof", "Bank passbook"],
+    "rules": {
+      "min_age": 60,
+      "requires_bpl": true
+    },
+    "documents": [
+      "Aadhaar",
+      "Ration card",
+      "Age proof",
+      "Bank passbook"
+    ],
     "apply_at": "Taluk office / e-Sevai centre",
     "source_url": "TODO: add official URL",
-    "verified": false
+    "verified": false,
+    "name_ta": "முதியோர் ஓய்வூதியம் (IGNOAPS / மாநில ஓய்வூதியம்)",
+    "benefit_ta": "மூத்த குடிமக்களுக்கான மாதாந்திர ஓய்வூதியம்",
+    "documents_ta": [
+      "ஆதார்",
+      "ரேஷன் அட்டை",
+      "வயதுச் சான்று",
+      "வங்கிக் கணக்குப் புத்தகம்"
+    ],
+    "apply_at_ta": "வட்டாட்சியர் அலுவலகம் / இ-சேவை மையம்"
   },
   {
     "id": "pm_kisan",
     "name": "PM-KISAN",
     "level": "central",
-    "benefit": "Yearly income support for farmer families",
-    "rules": { "requires_agri_land": true },
-    "documents": ["Aadhaar", "Land records", "Bank passbook"],
-    "apply_at": "pmkisan.gov.in / CSC centre / local agriculture office",
-    "source_url": "TODO: add official URL",
-    "verified": false
+    "benefit": "Rs 6,000 per year in three installments of Rs 2,000, paid directly to the bank account of a landholding farmer family",
+    "rules": {
+      "requires_agri_land": true,
+      "excluded_if": {
+        "family_excluded_category": {
+          "en": "A family member falls in an excluded category (income tax payer, serving or retired government employee other than Group D, pension of Rs 10,000 or more a month, elected or constitutional office holder, or a practising doctor, engineer, lawyer, CA or architect)",
+          "ta": "குடும்ப உறுப்பினர் ஒருவர் விலக்கு பிரிவில் உள்ளார் (வருமான வரி செலுத்துபவர்; அரசு ஊழியர் அல்லது ஓய்வு பெற்றவர் (குரூப் D நீங்கலாக); மாதம் ₹10,000 அல்லது அதற்கு மேல் ஓய்வூதியம் பெறுபவர்; தேர்ந்தெடுக்கப்பட்ட/அரசியலமைப்புப் பதவி வகிப்பவர்; அல்லது பதிவு பெற்ற மருத்துவர், பொறியாளர், வழக்கறிஞர், CA, கட்டடக் கலைஞர்)"
+        },
+        "land_after_cutoff": {
+          "en": "Land acquired after 1 Feb 2019 (other than by inheritance after a death) does not qualify",
+          "ta": "2019 பிப்ரவரி 1-க்குப் பிறகு பெற்ற நிலம் (இறப்பால் வாரிசாகப் பெற்றதைத் தவிர) தகுதி பெறாது"
+        }
+      }
+    },
+    "documents": [
+      "Aadhaar card (with eKYC completed)",
+      "Land ownership records in your own name",
+      "Bank account number and IFSC code",
+      "Mobile number (optional, but advised)"
+    ],
+    "apply_at": "Online: PM-KISAN portal (Farmers Corner, New Farmer Registration), or through your village revenue official. If your name is missing from the list: District Level Grievance Redressal Monitoring Committee",
+    "source_url": "https://pmkisan.gov.in",
+    "source_note": "Official PM-KISAN FAQ PDF from pmkisan.gov.in (Q6-Q20, Q30, Q33). Checked 25 Oct 2026.",
+    "verified": true,
+    "name_ta": "பிரதமர் கிசான் சம்மான் நிதி (PM-KISAN)",
+    "benefit_ta": "நிலம் வைத்திருக்கும் விவசாயக் குடும்பத்தின் வங்கிக் கணக்கில் நேரடியாக ஆண்டுக்கு ₹6,000 (₹2,000 வீதம் மூன்று தவணைகளில்)",
+    "documents_ta": [
+      "ஆதார் அட்டை (eKYC முடிந்தது)",
+      "உங்கள் சொந்தப் பெயரில் உள்ள நில உரிமைப் பதிவுகள்",
+      "வங்கிக் கணக்கு எண் மற்றும் IFSC குறியீடு",
+      "கைபேசி எண் (கட்டாயமில்லை, ஆனால் பரிந்துரைக்கப்படுகிறது)"
+    ],
+    "apply_at_ta": "இணையத்தில்: PM-KISAN இணையதளம் (Farmers Corner → New Farmer Registration), அல்லது உங்கள் கிராம வருவாய் அலுவலர் மூலம். பட்டியலில் பெயர் இல்லையெனில்: மாவட்ட குறைதீர்ப்பு கண்காணிப்புக் குழு"
   },
   {
     "id": "ujjwala",
     "name": "Pradhan Mantri Ujjwala Yojana",
     "level": "central",
     "benefit": "Free LPG connection for eligible women",
-    "rules": { "min_age": 18, "genders": ["female"], "requires_bpl": true },
-    "documents": ["Aadhaar", "Ration card", "Bank passbook", "Passport photo"],
+    "rules": {
+      "min_age": 18,
+      "genders": [
+        "female"
+      ],
+      "requires_bpl": true
+    },
+    "documents": [
+      "Aadhaar",
+      "Ration card",
+      "Bank passbook",
+      "Passport photo"
+    ],
     "apply_at": "Nearest LPG distributor",
     "source_url": "TODO: add official URL",
-    "verified": false
+    "verified": false,
+    "name_ta": "பிரதமரின் உஜ்ஜ்வலா திட்டம்",
+    "benefit_ta": "தகுதியுள்ள பெண்களுக்கு இலவச LPG இணைப்பு",
+    "documents_ta": [
+      "ஆதார்",
+      "ரேஷன் அட்டை",
+      "வங்கிக் கணக்குப் புத்தகம்",
+      "பாஸ்போர்ட் அளவு புகைப்படம்"
+    ],
+    "apply_at_ta": "அருகிலுள்ள LPG விநியோகஸ்தர்"
   },
   {
     "id": "magalir_urimai",
     "name": "Kalaignar Magalir Urimai Thogai",
     "level": "state (Tamil Nadu)",
     "benefit": "Monthly assistance for women heads of family",
-    "rules": { "min_age": 21, "genders": ["female"], "max_income": 250000 },
-    "documents": ["Aadhaar", "Ration card", "Bank passbook"],
+    "rules": {
+      "min_age": 21,
+      "genders": [
+        "female"
+      ],
+      "max_income": 250000
+    },
+    "documents": [
+      "Aadhaar",
+      "Ration card",
+      "Bank passbook"
+    ],
     "apply_at": "Designated camps / e-Sevai / ration shop",
     "source_url": "TODO: add official URL",
-    "verified": false
+    "verified": false,
+    "name_ta": "கலைஞர் மகளிர் உரிமைத் தொகை",
+    "benefit_ta": "குடும்பத் தலைவியான பெண்களுக்கு மாதாந்திர உதவித்தொகை",
+    "documents_ta": [
+      "ஆதார்",
+      "ரேஷன் அட்டை",
+      "வங்கிக் கணக்குப் புத்தகம்"
+    ],
+    "apply_at_ta": "குறிப்பிட்ட முகாம்கள் / இ-சேவை மையம் / ரேஷன் கடை"
   },
   {
     "id": "post_matric_scholarship",
     "name": "Post-Matric Scholarship (example)",
     "level": "central/state",
     "benefit": "Fee and maintenance support for students",
-    "rules": { "requires_student": true, "max_income": 250000 },
-    "documents": ["Aadhaar", "Community certificate", "Income certificate", "Bonafide certificate"],
+    "rules": {
+      "requires_student": true,
+      "max_income": 250000
+    },
+    "documents": [
+      "Aadhaar",
+      "Community certificate",
+      "Income certificate",
+      "Bonafide certificate"
+    ],
     "apply_at": "National Scholarship Portal / college office",
     "source_url": "TODO: add official URL",
-    "verified": false
+    "verified": false,
+    "name_ta": "மெட்ரிக்குக்குப் பிந்தைய உதவித்தொகை (எடுத்துக்காட்டு)",
+    "benefit_ta": "மாணவர்களுக்கான கட்டணம் மற்றும் பராமரிப்பு உதவி",
+    "documents_ta": [
+      "ஆதார்",
+      "சாதிச் சான்றிதழ்",
+      "வருமானச் சான்றிதழ்",
+      "கல்லூரிச் சான்றிதழ் (Bonafide)"
+    ],
+    "apply_at_ta": "தேசிய உதவித்தொகை இணையதளம் / கல்லூரி அலுவலகம்"
   }
 ]
